@@ -1,0 +1,21 @@
+services:
+
+  postgres-db:
+    image: postgres:18.4
+    restart: always
+    shm_size: 128mb
+    ports:
+      - "5432:5432"
+    env_file: ".env"
+    volumes:
+      - city-report-data:/var/lib/postgresql
+#      - ./seed-db.sql:/docker-entrypoint-initdb.d/seed-db.sql
+    networks:
+      - city-report-net
+
+volumes:
+  city-report-data:   
+
+networks:
+  city-report-net: {}
+  
