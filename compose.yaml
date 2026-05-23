@@ -9,7 +9,7 @@ services:
     env_file: ".env"
     volumes:
       - city-report-data:/var/lib/postgresql
-#      - ./seed-db.sql:/docker-entrypoint-initdb.d/seed-db.sql
+      - ./seed-db.sql:/docker-entrypoint-initdb.d/seed-db.sql
     networks:
       - city-report-net
 
