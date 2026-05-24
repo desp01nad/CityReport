@@ -6,10 +6,21 @@ services:
     shm_size: 128mb
     ports:
       - "5432:5432"
-    env_file: ".env"
+    env_file: .env
     volumes:
       - city-report-data:/var/lib/postgresql
-      - ./seed-db.sql:/docker-entrypoint-initdb.d/seed-db.sql
+      - ../db/seed-db.sql:/docker-entrypoint-initdb.d/seed-db.sql
+    networks:
+      - city-report-net
+
+  user-api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    ports:
+      - "5000:5000"
+    restart: always
+    env_file: .env
     networks:
       - city-report-net
 

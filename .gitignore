@@ -1,2 +1,6 @@
-.env
 .idea
+
+.codex
+.agents
+
+code/.env
