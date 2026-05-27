@@ -21,6 +21,14 @@ services:
       - "5000:5000"
     restart: always
     env_file: .env
+    environment:
+      PGHOST: postgres-db
+      PGPORT: 5432
+      PGDATABASE: ${POSTGRES_DB}
+      PGUSER: ${POSTGRES_USER}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+    depends_on:
+      - postgres-db
     networks:
       - city-report-net
 
