@@ -42,13 +42,14 @@ CREATE TABLE CityReports (
 -- Seed Data Queries
 -- Insert predefined categories
 INSERT INTO Categories (CategoryId, CategoryName) VALUES
-(1, 'Road Damage'),
-(2, 'Street Lighting'),
-(3, 'Cleanliness'),
-(4, 'Water Supply'),
-(5, 'Green Spaces'),
-(6, 'Public Infrastructure'),
-(7, 'Abandoned Vehicle');
+(1, 'Generic'),
+(2, 'Road Damage'),
+(3, 'Street Lighting'),
+(4, 'Cleanliness'),
+(5, 'Water Supply'),
+(6, 'Green Spaces'),
+(7, 'Public Infrastructure'),
+(8, 'Abandoned Vehicle');
 
 -- Insert predefined statuses
 INSERT INTO Statuses (StatusId, StatusName) VALUES
