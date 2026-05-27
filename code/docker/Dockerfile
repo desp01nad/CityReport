@@ -11,4 +11,5 @@ RUN pip install --no-cache-dir -r user_api/requirements.txt
 
 EXPOSE 5000
 
-CMD ["flask", "--app", "user_api.app", "run", "--host=0.0.0.0", "--port=5000"]
+# The flask server is development only, replace on production
+CMD ["flask", "--app", "user_api.app", "run", "--host=0.0.0.0", "--port=5000", "--debug"]

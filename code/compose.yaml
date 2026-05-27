@@ -29,6 +29,10 @@ services:
       PGPASSWORD: ${POSTGRES_PASSWORD}
     depends_on:
       - postgres-db
+    volumes:
+      # These mounts are development only, remove on production
+      - ./user_api:/app/user_api
+      - ./db_repository:/app/db_repository:z
     networks:
       - city-report-net
 
