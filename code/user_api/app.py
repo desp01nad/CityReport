@@ -2,7 +2,10 @@ from flask import Flask, jsonify, request
 import psycopg
 from psycopg.rows import dict_row
 from db_repository import repository
-from user_api.serializers import serialize_create_report_request_data
+from user_api.serializers import (
+    serialize_create_report_request_data,
+    serialize_update_report_request_data,
+)
 
 app = Flask(__name__)
 app.json.sort_keys = False
@@ -23,28 +26,15 @@ def get_statuses():
     return repository.get_statuses()
 
 
-@app.route("/api/v1/reports", methods=["GET"])
-def get_reports():
-    # TODO: Refactor and support filtering and ordering
-    with psycopg.connect() as conn:
-        with conn.cursor(row_factory=dict_row) as cur:
-            cur.execute("""
-                SELECT TicketId, Title, Description, Latitude, Longitude, ImagePath, CreatedAt, UpdatedAt, ResolvedAt, C.categoryname  , S.statusname
-                FROM CityReports CR
-                JOIN Categories C ON CR.CategoryId = C.CategoryId
-                JOIN Statuses S ON CR.StatusId = S.StatusId
-                ORDER BY CreatedAt DESC
-                """)
-            reports = cur.fetchall()
-
-    return reports
-
-
 @app.route("/api/v1/reports", methods=["POST"])
 def create_report():
-    data = request.json
-    validated_data = serialize_create_report_request_data(data)
-    row = repository.create_report(
+    data = request.get_json(silent=True)
+    try:
+        validated_data = serialize_create_report_request_data(data)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+
+    report = repository.create_report(
         validated_data["title"],
         validated_data["description"],
         validated_data["category_id"],
@@ -52,12 +42,30 @@ def create_report():
         validated_data["latitude"],
         validated_data["longitude"],
     )
-    return jsonify(row), 201
+    if report is None:
+        return jsonify({"error": "Report not created"}), 500
+
+    return jsonify(report), 201
 
 
 @app.route("/api/v1/report/<int:ticket_id>", methods=["GET"])
 def get_report(ticket_id):
     report = repository.get_report(ticket_id)
+    if report is None:
+        return jsonify({"error": "Report not found"}), 404
+
+    return jsonify(report)
+
+
+@app.route("/api/v1/report/<int:ticket_id>", methods=["PATCH"])
+def update_report(ticket_id):
+    data = request.get_json(silent=True)
+    try:
+        validated_data = serialize_update_report_request_data(data)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+
+    report = repository.update_report(ticket_id, validated_data)
     if report is None:
         return jsonify({"error": "Report not found"}), 404
 
