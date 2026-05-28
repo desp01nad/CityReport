@@ -3,4 +3,6 @@
 .codex
 .agents
 
+*__pycache__
+
 code/.env
