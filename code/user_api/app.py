@@ -5,6 +5,7 @@ from db_repository import repository
 from user_api.serializers import serialize_create_report_request_data
 
 app = Flask(__name__)
+app.json.sort_keys = False
 
 
 @app.route("/api/v1/healthcheck", methods=["GET"])
@@ -52,3 +53,12 @@ def create_report():
         validated_data["longitude"],
     )
     return jsonify(row), 201
+
+
+@app.route("/api/v1/report/<int:ticket_id>", methods=["GET"])
+def get_report(ticket_id):
+    report = repository.get_report(ticket_id)
+    if report is None:
+        return jsonify({"error": "Report not found"}), 404
+
+    return jsonify(report)
