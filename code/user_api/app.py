@@ -136,6 +136,18 @@ def get_reports():
             raise ValueError(f"Status field should be one of {valid_statuses}")
         filter_queries.add(f"S.statusname = '{status}'")
 
+    title = query_params.get("title")
+    if title:
+        if not isinstance(title, str):
+            raise ValueError(f"Title field should be a string")
+        filter_queries.add(f"CR.title ILIKE '%{title}%'")
+
+    description = query_params.get("description")
+    if description:
+        if not isinstance(description, str):
+            raise ValueError(f"Description field should be a string")
+        filter_queries.add(f"CR.description ILIKE '%{description}%'")
+
     created_before = query_params.get("createdBefore")
     if created_before:
         try:
