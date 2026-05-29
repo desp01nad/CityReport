@@ -1,5 +1,4 @@
 from flask import Flask, jsonify, request
-from psycopg import sql
 from psycopg.rows import dict_row
 from db_repository import repository
 from user_api.serializers import (
@@ -80,7 +79,7 @@ def get_reports():
     order = query_params.get("order", "").lower()
     if order not in ["asc", "desc"]:
         raise ValueError(f"Order field should be asc or desc")
-    order = sql.SQL("ASC") if order == "asc" else sql.SQL("DESC")
+    order = "ASC" if order == "asc" else "DESC"
     order_by = query_params.get("order_by", "").lower()
     ordering_fields = (
         "createdat",
@@ -96,23 +95,49 @@ def get_reports():
         raise ValueError(f"Order by field should be one of {ordering_fields}")
 
     ordering_mapping = {
-        "title": sql.SQL("CR.Title"),
-        "createdat": sql.SQL("CR.createdAt"),
-        "updatedat": sql.SQL("CR.updatedAt"),
-        "resolvedat": sql.SQL("CR.resolvedAt"),
-        "status": sql.SQL("S.statusname"),
-        "category": sql.SQL("C.categoryname"),
+        "title": "CR.Title",
+        "createdat": "CR.createdAt",
+        "updatedat": "CR.updatedAt",
+        "resolvedat": "CR.resolvedAt",
+        "status": "S.statusname",
+        "category": "C.categoryname",
     }
     order_by = ordering_mapping[order_by]
-    sql_query = sql.SQL("""
+
+    sql_query = """
         SELECT TicketId, Title, Description, C.categoryname, S.statusname,
                Latitude::float8 AS Latitude, Longitude::float8 AS Longitude,
                ImagePath, CreatedAt, UpdatedAt, ResolvedAt
         FROM CityReports CR
         JOIN Categories C ON CR.CategoryId = C.CategoryId
-        JOIN Statuses S ON CR.StatusId = S.StatusId 
-        ORDER BY {} {}
-    """).format(order_by, order)
+        JOIN Statuses S ON CR.StatusId = S.StatusId
+    """
+
+    filter_queries = set()
+
+    category = query_params.get("category")
+    if category:
+        valid_categories = {
+            category["categoryname"]: category["categoryid"]
+            for category in repository.get_categories()
+        }
+        if category not in valid_categories:
+            raise ValueError(f"Category field should be one of {valid_categories}")
+        filter_queries.add(f"C.categoryname = '{category}'")
+
+    status = query_params.get("status")
+    if status:
+        valid_statuses = {
+            status["statusname"]: status["statusid"]
+            for status in repository.get_statuses()
+        }
+        if status not in valid_statuses:
+            raise ValueError(f"Status field should be one of {valid_statuses}")
+        filter_queries.add(f"S.statusname = '{status}'")
+
+    sql_query += " WHERE " + " AND ".join(filter_queries)
+    sql_query += f" ORDER BY {order_by} {order}"
+
     print(sql_query)
 
     with repository.connect() as conn:
