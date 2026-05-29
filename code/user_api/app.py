@@ -156,6 +156,46 @@ def get_reports():
             raise ValueError("Datetime query parameter must include timezone info")
         filter_queries.add(f"CR.createdat > '{created_after}'")
 
+    updated_before = query_params.get("updatedBefore")
+    if updated_before:
+        try:
+            dt = datetime.fromisoformat(updated_before.replace("Z", "+00:00"))
+        except ValueError:
+            raise ValueError("Datetime query parameter must be a valid ISO datetime")
+        if dt.tzinfo is None:
+            raise ValueError("Datetime query parameter must include timezone info")
+        filter_queries.add(f"CR.updatedat < '{updated_before}'")
+
+    updated_after = query_params.get("updatedAfter")
+    if updated_after:
+        try:
+            dt = datetime.fromisoformat(updated_after.replace("Z", "+00:00"))
+        except ValueError:
+            raise ValueError("Datetime query parameter must be a valid ISO datetime")
+        if dt.tzinfo is None:
+            raise ValueError("Datetime query parameter must include timezone info")
+        filter_queries.add(f"CR.updatedat > '{updated_after}'")
+
+    resolved_before = query_params.get("resolvedBefore")
+    if resolved_before:
+        try:
+            dt = datetime.fromisoformat(resolved_before.replace("Z", "+00:00"))
+        except ValueError:
+            raise ValueError("Datetime query parameter must be a valid ISO datetime")
+        if dt.tzinfo is None:
+            raise ValueError("Datetime query parameter must include timezone info")
+        filter_queries.add(f"CR.resolvedat < '{resolved_before}'")
+
+    resolved_after = query_params.get("resolvedAfter")
+    if resolved_after:
+        try:
+            dt = datetime.fromisoformat(resolved_after.replace("Z", "+00:00"))
+        except ValueError:
+            raise ValueError("Datetime query parameter must be a valid ISO datetime")
+        if dt.tzinfo is None:
+            raise ValueError("Datetime query parameter must include timezone info")
+        filter_queries.add(f"CR.resolvedat > '{resolved_after}'")
+
     if filter_queries:
         sql_query += " WHERE " + " AND ".join(filter_queries)
     sql_query += f" ORDER BY {order_by} {order}"
