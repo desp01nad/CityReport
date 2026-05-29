@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request
 import psycopg
+from psycopg import sql
 from psycopg.rows import dict_row
 from db_repository import repository
 from user_api.serializers import (
@@ -70,3 +71,51 @@ def update_report(ticket_id):
         return jsonify({"error": "Report not found"}), 404
 
     return jsonify(report)
+
+
+@app.route("/api/v1/reports", methods=["GET"])
+def get_reports():
+    query_params = request.args
+
+    order = query_params.get("order", "").lower()
+    if order not in ["asc", "desc"]:
+        raise ValueError(f"Order field should be asc or desc")
+    order = sql.SQL("ASC") if order == "asc" else sql.SQL("DESC")
+    order_by = query_params.get("order_by", "").lower()
+    ordering_fields = (
+        "createdat",
+        "updatedat",
+        "resolvedat",
+        "title",
+        "category",
+        "status",
+    )
+    if not order_by:
+        order_by = "createdAt"
+    elif order_by not in ordering_fields:
+        raise ValueError(f"Order by field should be one of {ordering_fields}")
+
+    ordering_mapping = {
+        "title": sql.SQL("CR.Title"),
+        "createdat": sql.SQL("CR.createdAt"),
+        "updatedat": sql.SQL("CR.updatedAt"),
+        "resolvedat": sql.SQL("CR.resolvedAt"),
+        "status": sql.SQL("S.statusname"),
+        "category": sql.SQL("C.categoryname"),
+    }
+    order_by = ordering_mapping[order_by]
+    sql_query = sql.SQL("""
+        SELECT TicketId, Title, Description, C.categoryname, S.statusname, Latitude, Longitude, ImagePath, CreatedAt, UpdatedAt, ResolvedAt 
+        FROM CityReports CR
+        JOIN Categories C ON CR.CategoryId = C.CategoryId
+        JOIN Statuses S ON CR.StatusId = S.StatusId 
+        ORDER BY {} {}
+    """).format(order_by, order)
+    print(sql_query)
+
+    with psycopg.connect() as conn:
+        with conn.cursor(row_factory=dict_row) as cur:
+            cur.execute(sql_query)
+            reports = cur.fetchall()
+
+    return reports
