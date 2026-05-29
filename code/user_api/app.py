@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request
 from psycopg.rows import dict_row
+from datetime import datetime
 from db_repository import repository
 from user_api.serializers import (
     serialize_report_response,
@@ -135,7 +136,28 @@ def get_reports():
             raise ValueError(f"Status field should be one of {valid_statuses}")
         filter_queries.add(f"S.statusname = '{status}'")
 
-    sql_query += " WHERE " + " AND ".join(filter_queries)
+    created_before = query_params.get("createdBefore")
+    if created_before:
+        try:
+            dt = datetime.fromisoformat(created_before.replace("Z", "+00:00"))
+        except ValueError:
+            raise ValueError("Datetime query parameter must be a valid ISO datetime")
+        if dt.tzinfo is None:
+            raise ValueError("Datetime query parameter must include timezone info")
+        filter_queries.add(f"CR.createdat < '{created_before}'")
+
+    created_after = query_params.get("createdAfter")
+    if created_after:
+        try:
+            dt = datetime.fromisoformat(created_after.replace("Z", "+00:00"))
+        except ValueError:
+            raise ValueError("Datetime query parameter must be a valid ISO datetime")
+        if dt.tzinfo is None:
+            raise ValueError("Datetime query parameter must include timezone info")
+        filter_queries.add(f"CR.createdat > '{created_after}'")
+
+    if filter_queries:
+        sql_query += " WHERE " + " AND ".join(filter_queries)
     sql_query += f" ORDER BY {order_by} {order}"
 
     print(sql_query)
