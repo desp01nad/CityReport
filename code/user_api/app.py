@@ -1,9 +1,9 @@
 from flask import Flask, jsonify, request
-import psycopg
 from psycopg import sql
 from psycopg.rows import dict_row
 from db_repository import repository
 from user_api.serializers import (
+    serialize_report_response,
     serialize_create_report_request_data,
     serialize_update_report_request_data,
 )
@@ -46,7 +46,7 @@ def create_report():
     if report is None:
         return jsonify({"error": "Report not created"}), 500
 
-    return jsonify(report), 201
+    return jsonify({"ticketId": report["ticketid"]}), 201
 
 
 @app.route("/api/v1/report/<int:ticket_id>", methods=["GET"])
@@ -55,7 +55,7 @@ def get_report(ticket_id):
     if report is None:
         return jsonify({"error": "Report not found"}), 404
 
-    return jsonify(report)
+    return jsonify(serialize_report_response(report))
 
 
 @app.route("/api/v1/report/<int:ticket_id>", methods=["PATCH"])
@@ -70,7 +70,7 @@ def update_report(ticket_id):
     if report is None:
         return jsonify({"error": "Report not found"}), 404
 
-    return jsonify(report)
+    return jsonify(serialize_report_response(report))
 
 
 @app.route("/api/v1/reports", methods=["GET"])
@@ -91,7 +91,7 @@ def get_reports():
         "status",
     )
     if not order_by:
-        order_by = "createdAt"
+        order_by = "createdat"
     elif order_by not in ordering_fields:
         raise ValueError(f"Order by field should be one of {ordering_fields}")
 
@@ -105,7 +105,9 @@ def get_reports():
     }
     order_by = ordering_mapping[order_by]
     sql_query = sql.SQL("""
-        SELECT TicketId, Title, Description, C.categoryname, S.statusname, Latitude, Longitude, ImagePath, CreatedAt, UpdatedAt, ResolvedAt 
+        SELECT TicketId, Title, Description, C.categoryname, S.statusname,
+               Latitude::float8 AS Latitude, Longitude::float8 AS Longitude,
+               ImagePath, CreatedAt, UpdatedAt, ResolvedAt
         FROM CityReports CR
         JOIN Categories C ON CR.CategoryId = C.CategoryId
         JOIN Statuses S ON CR.StatusId = S.StatusId 
@@ -113,9 +115,9 @@ def get_reports():
     """).format(order_by, order)
     print(sql_query)
 
-    with psycopg.connect() as conn:
+    with repository.connect() as conn:
         with conn.cursor(row_factory=dict_row) as cur:
             cur.execute(sql_query)
             reports = cur.fetchall()
 
-    return reports
+    return jsonify([serialize_report_response(report) for report in reports])

@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import TypedDict, cast
+from typing import TypedDict
 
 import psycopg
 from psycopg.rows import dict_row
@@ -20,8 +20,12 @@ class Report(TypedDict):
     admincomments: str | None
 
 
+def connect():
+    return psycopg.connect(options="-c timezone=UTC")
+
+
 def get_categories() -> list[dict[str, int | str]]:
-    with psycopg.connect() as conn:
+    with connect() as conn:
         with conn.cursor(row_factory=dict_row) as cur:
             cur.execute("""
                 SELECT CategoryId, CategoryName
@@ -31,7 +35,7 @@ def get_categories() -> list[dict[str, int | str]]:
 
 
 def get_statuses() -> list[dict[str, int | str]]:
-    with psycopg.connect() as conn:
+    with connect() as conn:
         with conn.cursor(row_factory=dict_row) as cur:
             cur.execute("""
                 SELECT StatusId, StatusName
@@ -41,11 +45,13 @@ def get_statuses() -> list[dict[str, int | str]]:
 
 
 def get_report(ticket_id: int) -> Report | None:
-    with psycopg.connect() as conn:
+    with connect() as conn:
         with conn.cursor(row_factory=dict_row) as cur:
             cur.execute(
                 """
-                SELECT TicketId, Title, Description, C.categoryname, S.statusname, Latitude, Longitude, ImagePath, CreatedAt, UpdatedAt, ResolvedAt, AdminComments
+                SELECT TicketId, Title, Description, C.categoryname, S.statusname,
+                       Latitude::float8 AS Latitude, Longitude::float8 AS Longitude,
+                       ImagePath, CreatedAt, UpdatedAt, ResolvedAt, AdminComments
                 FROM CityReports CR
                 JOIN Categories C ON CR.CategoryId = C.CategoryId
                 JOIN Statuses S ON CR.StatusId = S.StatusId
@@ -59,7 +65,7 @@ def get_report(ticket_id: int) -> Report | None:
 def create_report(
     title, description, category_id, status_id, latitude, longitude
 ) -> dict[str, int] | None:
-    with psycopg.connect() as conn:
+    with connect() as conn:
         with conn.cursor(row_factory=dict_row) as cur:
             cur.execute(
                 """
@@ -96,7 +102,7 @@ def update_report(ticket_id: int, updates: dict[str, object]) -> Report | None:
     values = [updates[field] for field in updates]
     values.append(ticket_id)
 
-    with psycopg.connect() as conn:
+    with connect() as conn:
         with conn.cursor(row_factory=dict_row) as cur:
             cur.execute(
                 f"""
@@ -107,7 +113,10 @@ def update_report(ticket_id: int, updates: dict[str, object]) -> Report | None:
                     RETURNING *
                 )
                 SELECT updated.TicketId, updated.Title, updated.Description, C.categoryname,
-                       S.statusname, updated.Latitude, updated.Longitude, updated.ImagePath,
+                       S.statusname,
+                       updated.Latitude::float8 AS Latitude,
+                       updated.Longitude::float8 AS Longitude,
+                       updated.ImagePath,
                        updated.CreatedAt, updated.UpdatedAt, updated.ResolvedAt,
                        updated.AdminComments
                 FROM updated

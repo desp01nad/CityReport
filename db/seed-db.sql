@@ -1,4 +1,5 @@
 -- Create Table Queries
+SET TIME ZONE 'UTC';
 
 -- Categories table
 -- Stores predefined problem categories
@@ -25,9 +26,9 @@ CREATE TABLE CityReports (
     Latitude NUMERIC(8,6) NOT NULL CHECK (Latitude BETWEEN -90 AND 90),
     Longitude NUMERIC(9,6) NOT NULL CHECK (Longitude BETWEEN -180 AND 180),
     ImagePath TEXT,
-    CreatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UpdatedAt TIMESTAMP,
-    ResolvedAt TIMESTAMP,
+    CreatedAt TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UpdatedAt TIMESTAMPTZ,
+    ResolvedAt TIMESTAMPTZ,
     AdminComments TEXT,
 
     CONSTRAINT FK_CityReports_Category

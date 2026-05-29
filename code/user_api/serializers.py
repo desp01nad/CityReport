@@ -1,3 +1,5 @@
+from datetime import UTC, datetime
+
 from db_repository import repository
 
 
@@ -87,3 +89,38 @@ def serialize_update_report_request_data(data):
         validated_data["longitude"] = longitude
 
     return validated_data
+
+
+def serialize_report_response(report):
+    response = {
+        "ticketId": report["ticketid"],
+        "title": report["title"],
+        "description": report["description"],
+        "categoryName": report["categoryname"],
+        "statusName": report["statusname"],
+        "latitude": report["latitude"],
+        "longitude": report["longitude"],
+        "imagePath": report["imagepath"],
+        "createdAt": serialize_datetime(report["createdat"]),
+        "updatedAt": serialize_datetime(report["updatedat"]),
+        "resolvedAt": serialize_datetime(report["resolvedat"]),
+    }
+
+    if "admincomments" in report:
+        response["adminComments"] = report["admincomments"]
+
+    return response
+
+
+def serialize_datetime(value):
+    if value is None:
+        return None
+    if not isinstance(value, datetime):
+        raise ValueError("Expected datetime value")
+
+    if value.tzinfo is None:
+        value = value.replace(tzinfo=UTC)
+    else:
+        value = value.astimezone(UTC)
+
+    return value.isoformat().replace("+00:00", "Z")
