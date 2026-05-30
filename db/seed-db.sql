@@ -76,7 +76,7 @@ INSERT INTO city_reports (
 (
     'Large pothole near Syntagma Square',
     'A large pothole has appeared near the pedestrian crossing close to Syntagma Square. It is difficult for cars and motorcycles to avoid it during traffic.',
-    1, 1, 37.975564, 23.734832, NULL,
+    1, 1, 37.975564, 23.734832, 'report1.jpg',
     '2026-05-01 09:15:00', NULL, NULL, NULL
 ),
 (
@@ -89,13 +89,13 @@ INSERT INTO city_reports (
 (
     'Garbage bags left near Omonia Square',
     NULL,
-    3, 1, 37.984149, 23.727984, NULL,
+    3, 1, 37.984149, 23.727984, 'report3.jpg',
     '2026-05-03 08:45:00', NULL, NULL, NULL
 ),
 (
     'Water leak near Panepistimio station',
     'Water is leaking from the pavement near the metro entrance. The area is slippery and pedestrians are walking into the street to avoid it.',
-    4, 2, 37.980207, 23.732394, NULL,
+    4, 2, 37.980207, 23.732394, 'report4.jpg',
     '2026-05-04 11:20:00', '2026-05-04 13:00:00', NULL,
     'Water service department is checking the issue.'
 ),
@@ -115,7 +115,7 @@ INSERT INTO city_reports (
 (
     'Abandoned vehicle in Kolonaki',
     'An abandoned car has been parked in the same location for several weeks. It has no license plates and takes up a parking space on a narrow street.',
-    7, 1, 37.978640, 23.743512, NULL,
+    7, 1, 37.978640, 23.743512, 'report7.jpg',
     '2026-05-07 10:25:00', NULL, NULL, NULL
 ),
 (
@@ -134,7 +134,7 @@ INSERT INTO city_reports (
 (
     'Broken traffic sign near Evangelismos',
     NULL,
-    6, 2, 37.976246, 23.747196, NULL,
+    6, 2, 37.976246, 23.747196, 'report10.jpg',
     '2026-05-10 07:50:00', '2026-05-10 12:30:00', NULL,
     'Inspection scheduled.'
 ),
@@ -153,7 +153,7 @@ INSERT INTO city_reports (
 (
     'Damaged playground equipment in Pangrati',
     'A swing in the playground is broken and may be dangerous for children. The metal chain appears loose on one side.',
-    5, 2, 37.969780, 23.749077, NULL,
+    5, 2, 37.969780, 23.749077, 'report13.jpg',
     '2026-05-13 17:10:00', '2026-05-14 08:20:00', NULL,
     'Technician visit has been scheduled.'
 ),
@@ -173,20 +173,20 @@ INSERT INTO city_reports (
 (
     'Broken public bin near Thiseio',
     NULL,
-    3, 1, 37.976690, 23.719266, NULL,
+    3, 1, 37.976690, 23.719266, 'report16.jpg',
     '2026-05-16 15:45:00', NULL, NULL, NULL
 ),
 (
     'Damaged bus stop shelter in Ambelokipi',
     'The glass panel of a bus stop shelter is cracked. There are small glass pieces on the ground and people are waiting close to the road.',
-    6, 2, 37.988084, 23.763573, NULL,
+    6, 2, 37.988084, 23.763573, 'report17.jpg',
     '2026-05-17 12:25:00', '2026-05-18 09:10:00', NULL,
     'Replacement panel requested.'
 ),
 (
     'Abandoned motorcycle near Victoria Square',
     'Blocking sidewalk.',
-    7, 1, 37.993208, 23.730348, NULL,
+    7, 1, 37.993208, 23.730348, 'report18.jpg',
     '2026-05-18 10:55:00', NULL, NULL, NULL
 ),
 (
@@ -199,7 +199,7 @@ INSERT INTO city_reports (
 (
     'Damaged pavement near Larissa Station',
     'The pavement outside the station has several cracks and uneven areas. People with luggage have difficulty passing through.',
-    1, 1, 37.992083, 23.721483, NULL,
+    1, 1, 37.992083, 23.721483, 'report20.jpg',
     '2026-05-20 08:00:00', NULL, NULL, NULL
 ),
 (
@@ -211,7 +211,7 @@ INSERT INTO city_reports (
 (
     'Street light not working in Gazi',
     NULL,
-    2, 1, 37.978202, 23.713824, NULL,
+    2, 1, 37.978202, 23.713824, 'report22.jpg',
     '2026-05-21 22:05:00', NULL, NULL, NULL
 ),
 (
@@ -230,7 +230,7 @@ INSERT INTO city_reports (
 (
     'Tree needs pruning in Ilisia',
     'Branches are blocking part of the sidewalk and touching nearby balconies. Pedestrians have to lower their heads to pass.',
-    5, 2, 37.975875, 23.756910, NULL,
+    5, 2, 37.975875, 23.756910, 'report25.jpg',
     '2026-05-23 09:10:00', '2026-05-23 14:00:00', NULL,
     'Green spaces department has been informed.'
 ),
@@ -243,7 +243,7 @@ INSERT INTO city_reports (
 (
     'Abandoned van in Patisia',
     'An old van appears abandoned and has been parked in the same spot for over a month. The tires are flat and it is partially blocking visibility at the corner.',
-    7, 2, 38.011349, 23.728371, NULL,
+    7, 2, 38.011349, 23.728371, 'report27.jpg',
     '2026-05-24 11:00:00', '2026-05-25 09:40:00', NULL,
     'Police notification is pending.'
 ),
@@ -263,7 +263,7 @@ INSERT INTO city_reports (
 (
     'Missing manhole cover near Metaxourgeio',
     'There is an open manhole near the side of the road. This is very dangerous for pedestrians, cyclists and vehicles, especially at night.',
-    6, 2, 37.986301, 23.721928, NULL,
+    6, 2, 37.986301, 23.721928, 'report30.jpg',
     '2026-05-25 21:45:00', '2026-05-26 08:15:00', NULL,
     'Marked as urgent. Temporary cover requested.'
 );

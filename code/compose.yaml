@@ -13,6 +13,21 @@ services:
     networks:
       - city-report-net
 
+  demo-report-images-init:
+    image: alpine:3.22.4
+    command: >
+      sh -c '
+        set -e
+        if [ ! -e /mnt/report-images/.initialized ]; then
+          cp -a /seed/. /mnt/report-images/
+          touch /mnt/report-images/.initialized
+        fi
+      '
+    volumes:
+      - report-images:/mnt/report-images:z
+      - ./demo-report-images:/seed:ro
+    restart: "no"
+
   user-api:
     build:
       context: .
@@ -29,8 +44,12 @@ services:
       PGUSER: ${POSTGRES_USER}
       PGPASSWORD: ${POSTGRES_PASSWORD}
     depends_on:
-      - postgres-db
+      postgres-db:
+        condition: service_started
+      demo-report-images-init:
+        condition: service_completed_successfully
     volumes:
+      - report-images:/mnt/report-images:z
       # These mounts are development only, remove on production
       - ./user_api:/app/user_api
       - ./db_repository:/app/db_repository:z
@@ -53,8 +72,12 @@ services:
       PGUSER: ${POSTGRES_USER}
       PGPASSWORD: ${POSTGRES_PASSWORD}
     depends_on:
-      - postgres-db
+      postgres-db:
+        condition: service_started
+      demo-report-images-init:
+        condition: service_completed_successfully
     volumes:
+      - report-images:/mnt/report-images:z
       # These mounts are development only, remove on production
       - ./admin_dashboard:/app/admin_dashboard
       - ./db_repository:/app/db_repository:z
@@ -62,7 +85,8 @@ services:
       - city-report-net
 
 volumes:
-  city-report-data:   
+  city-report-data:
+  report-images:
 
 networks:
   city-report-net: {}
