@@ -16,12 +16,13 @@ services:
   user-api:
     build:
       context: .
-      dockerfile: docker/Dockerfile
+      dockerfile: docker/user-api.Dockerfile
     ports:
       - "5000:5000"
     restart: always
     env_file: .env
     environment:
+      # psycopg specific env variables
       PGHOST: postgres-db
       PGPORT: 5432
       PGDATABASE: ${POSTGRES_DB}
@@ -32,6 +33,30 @@ services:
     volumes:
       # These mounts are development only, remove on production
       - ./user_api:/app/user_api
+      - ./db_repository:/app/db_repository:z
+    networks:
+      - city-report-net
+
+  admin-dashboard:
+    build:
+      context: .
+      dockerfile: docker/admin-dashboard.Dockerfile
+    ports:
+      - "8501:8501"
+    restart: always
+    env_file: .env
+    environment:
+      # psycopg specific env variables
+      PGHOST: postgres-db
+      PGPORT: 5432
+      PGDATABASE: ${POSTGRES_DB}
+      PGUSER: ${POSTGRES_USER}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+    depends_on:
+      - postgres-db
+    volumes:
+      # These mounts are development only, remove on production
+      - ./admin_dashboard:/app/admin_dashboard
       - ./db_repository:/app/db_repository:z
     networks:
       - city-report-net
