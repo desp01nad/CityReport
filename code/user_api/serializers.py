@@ -21,7 +21,7 @@ def serialize_create_report_request_data(data):
 
     category = data.get("category")
     valid_categories = {
-        category["categoryname"]: category["categoryid"]
+        category["category_name"]: category["category_id"]
         for category in repository.get_categories()
     }
     if not category:
@@ -66,7 +66,7 @@ def serialize_update_report_request_data(data):
 
     if "category" in data:
         valid_categories = {
-            category["categoryname"]: category["categoryid"]
+            category["category_name"]: category["category_id"]
             for category in repository.get_categories()
         }
         category = data["category"]
@@ -91,25 +91,34 @@ def serialize_update_report_request_data(data):
     return validated_data
 
 
-def serialize_report_response(report):
-    response = {
-        "ticketId": report["ticketid"],
-        "title": report["title"],
-        "description": report["description"],
-        "categoryName": report["categoryname"],
-        "statusName": report["statusname"],
-        "latitude": report["latitude"],
-        "longitude": report["longitude"],
-        "imagePath": report["imagepath"],
-        "createdAt": serialize_datetime(report["createdat"]),
-        "updatedAt": serialize_datetime(report["updatedat"]),
-        "resolvedAt": serialize_datetime(report["resolvedat"]),
+def serialize_category_response(category):
+    return {
+        "categoryId": category["category_id"],
+        "categoryName": category["category_name"],
     }
 
-    if "admincomments" in report:
-        response["adminComments"] = report["admincomments"]
 
-    return response
+def serialize_status_response(status):
+    return {
+        "statusId": status["status_id"],
+        "statusName": status["status_name"],
+    }
+
+
+def serialize_report_response(report):
+    return {
+        "ticketId": report["ticket_id"],
+        "title": report["title"],
+        "description": report["description"],
+        "categoryName": report["category_name"],
+        "statusName": report["status_name"],
+        "latitude": report["latitude"],
+        "longitude": report["longitude"],
+        "imagePath": report["image_path"],
+        "createdAt": serialize_datetime(report["created_at"]),
+        "updatedAt": serialize_datetime(report["updated_at"]),
+        "resolvedAt": serialize_datetime(report["resolved_at"]),
+    }
 
 
 def serialize_datetime(value):
@@ -144,24 +153,26 @@ def serialize_get_reports_query_params(data):
             raise ValueError(f"Order field should be 'asc' or 'desc'")
         validated_data["order"] = order
 
-    order_by = data.get("order_by")
+    order_by = data.get("orderBy")
     if order_by:
-        ordering_fields = (
-            "createdAt",
-            "updatedAt",
-            "resolvedAt",
-            "title",
-            "category",
-            "status",
-        )
+        ordering_fields = {
+            "createdAt": "created_at",
+            "updatedAt": "updated_at",
+            "resolvedAt": "resolved_at",
+            "title": "title",
+            "category": "category",
+            "status": "status",
+        }
         if order_by not in ordering_fields:
-            raise ValueError(f"Order by field should be one of {ordering_fields}")
-        validated_data["order_by"] = order_by
+            raise ValueError(
+                f"Order by field should be one of {tuple(ordering_fields)}"
+            )
+        validated_data["order_by"] = ordering_fields[order_by]
 
     category = data.get("category")
     if category:
         valid_categories = [
-            category["categoryname"] for category in repository.get_categories()
+            category["category_name"] for category in repository.get_categories()
         ]
         if category not in valid_categories:
             raise ValueError(f"Category field should be one of {valid_categories}")
@@ -169,7 +180,7 @@ def serialize_get_reports_query_params(data):
 
     status = data.get("status")
     if status:
-        valid_statuses = [status["statusname"] for status in repository.get_statuses()]
+        valid_statuses = [status["status_name"] for status in repository.get_statuses()]
         if status not in valid_statuses:
             raise ValueError(f"Status field should be one of {valid_statuses}")
         validated_data["status"] = status
@@ -189,31 +200,31 @@ def serialize_get_reports_query_params(data):
     created_before = data.get("createdBefore")
     if created_before:
         created_before = validate_and_parse_iso_format_datetime_string(created_before)
-        validated_data["createdBefore"] = created_before
+        validated_data["created_before"] = created_before
 
     created_after = data.get("createdAfter")
     if created_after:
         created_after = validate_and_parse_iso_format_datetime_string(created_after)
-        validated_data["createdAfter"] = created_after
+        validated_data["created_after"] = created_after
 
     updated_before = data.get("updatedBefore")
     if updated_before:
         updated_before = validate_and_parse_iso_format_datetime_string(updated_before)
-        validated_data["updatedBefore"] = updated_before
+        validated_data["updated_before"] = updated_before
 
     updated_after = data.get("updatedAfter")
     if updated_after:
         updated_after = validate_and_parse_iso_format_datetime_string(updated_after)
-        validated_data["updatedAfter"] = updated_after
+        validated_data["updated_after"] = updated_after
 
     resolved_before = data.get("resolvedBefore")
     if resolved_before:
         resolved_before = validate_and_parse_iso_format_datetime_string(resolved_before)
-        validated_data["resolvedBefore"] = resolved_before
+        validated_data["resolved_before"] = resolved_before
 
     resolved_after = data.get("resolvedAfter")
     if resolved_after:
         resolved_after = validate_and_parse_iso_format_datetime_string(resolved_after)
-        validated_data["resolvedAfter"] = resolved_after
+        validated_data["resolved_after"] = resolved_after
 
     return validated_data

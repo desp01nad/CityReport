@@ -1,9 +1,10 @@
 from flask import Flask, jsonify, request
-from psycopg.rows import dict_row
-from datetime import datetime
+
 from db_repository import repository
 from user_api.serializers import (
     serialize_report_response,
+    serialize_category_response,
+    serialize_status_response,
     serialize_create_report_request_data,
     serialize_update_report_request_data,
     serialize_get_reports_query_params,
@@ -20,12 +21,14 @@ def healthcheck():
 
 @app.route("/api/v1/categories", methods=["GET"])
 def get_categories():
-    return repository.get_categories()
+    categories = repository.get_categories()
+    return jsonify([serialize_category_response(category) for category in categories])
 
 
 @app.route("/api/v1/statuses", methods=["GET"])
 def get_statuses():
-    return repository.get_statuses()
+    statuses = repository.get_statuses()
+    return jsonify([serialize_status_response(status) for status in statuses])
 
 
 @app.route("/api/v1/reports", methods=["POST"])
@@ -47,7 +50,7 @@ def create_report():
     if report is None:
         return jsonify({"error": "Report not created"}), 500
 
-    return jsonify({"ticketId": report["ticketid"]}), 201
+    return jsonify({"ticketId": report["ticket_id"]}), 201
 
 
 @app.route("/api/v1/report/<int:ticket_id>", methods=["GET"])

@@ -3,46 +3,46 @@ SET TIME ZONE 'UTC';
 
 -- Categories table
 -- Stores predefined problem categories
-CREATE TABLE Categories (
-    CategoryId INT PRIMARY KEY,
-    CategoryName VARCHAR(100) NOT NULL UNIQUE
+CREATE TABLE categories (
+    category_id INT PRIMARY KEY,
+    category_name VARCHAR(100) NOT NULL UNIQUE
 );
 
 -- Statuses table
 -- Stores predefined report statuses
-CREATE TABLE Statuses (
-    StatusId INT PRIMARY KEY,
-    StatusName VARCHAR(100) NOT NULL UNIQUE
+CREATE TABLE statuses (
+    status_id INT PRIMARY KEY,
+    status_name VARCHAR(100) NOT NULL UNIQUE
 );
 
 -- City reports table
 -- Stores all citizen problem reports
-CREATE TABLE CityReports (
-    TicketId INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    Title VARCHAR(200) NOT NULL,
-    Description TEXT,
-    CategoryId INT NOT NULL,
-    StatusId INT NOT NULL,
-    Latitude NUMERIC(8,6) NOT NULL CHECK (Latitude BETWEEN -90 AND 90),
-    Longitude NUMERIC(9,6) NOT NULL CHECK (Longitude BETWEEN -180 AND 180),
-    ImagePath TEXT,
-    CreatedAt TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UpdatedAt TIMESTAMPTZ,
-    ResolvedAt TIMESTAMPTZ,
-    AdminComments TEXT,
+CREATE TABLE city_reports (
+    ticket_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    title VARCHAR(200) NOT NULL,
+    description TEXT,
+    category_id INT NOT NULL,
+    status_id INT NOT NULL,
+    latitude NUMERIC(8,6) NOT NULL CHECK (latitude BETWEEN -90 AND 90),
+    longitude NUMERIC(9,6) NOT NULL CHECK (longitude BETWEEN -180 AND 180),
+    image_path TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ,
+    resolved_at TIMESTAMPTZ,
+    admin_comments TEXT,
 
-    CONSTRAINT FK_CityReports_Category
-        FOREIGN KEY (CategoryId)
-        REFERENCES Categories(CategoryId),
+    CONSTRAINT fk_city_reports_category
+        FOREIGN KEY (category_id)
+        REFERENCES categories(category_id),
 
-    CONSTRAINT FK_CityReports_Status
-        FOREIGN KEY (StatusId)
-        REFERENCES Statuses(StatusId)
+    CONSTRAINT fk_city_reports_status
+        FOREIGN KEY (status_id)
+        REFERENCES statuses(status_id)
 );
 
 -- Seed Data Queries
 -- Insert predefined categories
-INSERT INTO Categories (CategoryId, CategoryName) VALUES
+INSERT INTO categories (category_id, category_name) VALUES
 (1, 'Generic'),
 (2, 'Road Damage'),
 (3, 'Street Lighting'),
@@ -53,25 +53,25 @@ INSERT INTO Categories (CategoryId, CategoryName) VALUES
 (8, 'Abandoned Vehicle');
 
 -- Insert predefined statuses
-INSERT INTO Statuses (StatusId, StatusName) VALUES
+INSERT INTO statuses (status_id, status_name) VALUES
 (1, 'Reported'),
 (2, 'In Progress'),
 (3, 'Resolved'),
 (4, 'Rejected');
 
 -- Example test data
-INSERT INTO CityReports (
-    Title,
-    Description,
-    CategoryId,
-    StatusId,
-    Latitude,
-    Longitude,
-    ImagePath,
-    CreatedAt,
-    UpdatedAt,
-    ResolvedAt,
-    AdminComments
+INSERT INTO city_reports (
+    title,
+    description,
+    category_id,
+    status_id,
+    latitude,
+    longitude,
+    image_path,
+    created_at,
+    updated_at,
+    resolved_at,
+    admin_comments
 ) VALUES
 (
     'Large pothole near Syntagma Square',
