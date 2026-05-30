@@ -124,3 +124,96 @@ def serialize_datetime(value):
         value = value.astimezone(UTC)
 
     return value.isoformat().replace("+00:00", "Z")
+
+
+def validate_and_parse_iso_format_datetime_string(value):
+    try:
+        dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        raise ValueError("Datetime query parameter must be a valid ISO datetime")
+    if dt.tzinfo is None:
+        raise ValueError("Datetime query parameter must include timezone info")
+    return dt
+
+
+def serialize_get_reports_query_params(data):
+    validated_data = {}
+    order = data.get("order", "")
+    if order:
+        if order not in ["asc", "desc"]:
+            raise ValueError(f"Order field should be 'asc' or 'desc'")
+        validated_data["order"] = order
+
+    order_by = data.get("order_by")
+    if order_by:
+        ordering_fields = (
+            "createdAt",
+            "updatedAt",
+            "resolvedAt",
+            "title",
+            "category",
+            "status",
+        )
+        if order_by not in ordering_fields:
+            raise ValueError(f"Order by field should be one of {ordering_fields}")
+        validated_data["order_by"] = order_by
+
+    category = data.get("category")
+    if category:
+        valid_categories = [
+            category["categoryname"] for category in repository.get_categories()
+        ]
+        if category not in valid_categories:
+            raise ValueError(f"Category field should be one of {valid_categories}")
+        validated_data["category"] = category
+
+    status = data.get("status")
+    if status:
+        valid_statuses = [status["statusname"] for status in repository.get_statuses()]
+        if status not in valid_statuses:
+            raise ValueError(f"Status field should be one of {valid_statuses}")
+        validated_data["status"] = status
+
+    title = data.get("title")
+    if title:
+        if not isinstance(title, str):
+            raise ValueError(f"Title field should be a string")
+        validated_data["title"] = title
+
+    description = data.get("description")
+    if description:
+        if not isinstance(description, str):
+            raise ValueError(f"Description field should be a string")
+        validated_data["description"] = description
+
+    created_before = data.get("createdBefore")
+    if created_before:
+        created_before = validate_and_parse_iso_format_datetime_string(created_before)
+        validated_data["createdBefore"] = created_before
+
+    created_after = data.get("createdAfter")
+    if created_after:
+        created_after = validate_and_parse_iso_format_datetime_string(created_after)
+        validated_data["createdAfter"] = created_after
+
+    updated_before = data.get("updatedBefore")
+    if updated_before:
+        updated_before = validate_and_parse_iso_format_datetime_string(updated_before)
+        validated_data["updatedBefore"] = updated_before
+
+    updated_after = data.get("updatedAfter")
+    if updated_after:
+        updated_after = validate_and_parse_iso_format_datetime_string(updated_after)
+        validated_data["updatedAfter"] = updated_after
+
+    resolved_before = data.get("resolvedBefore")
+    if resolved_before:
+        resolved_before = validate_and_parse_iso_format_datetime_string(resolved_before)
+        validated_data["resolvedBefore"] = resolved_before
+
+    resolved_after = data.get("resolvedAfter")
+    if resolved_after:
+        resolved_after = validate_and_parse_iso_format_datetime_string(resolved_after)
+        validated_data["resolvedAfter"] = resolved_after
+
+    return validated_data

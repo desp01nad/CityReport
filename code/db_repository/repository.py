@@ -62,6 +62,56 @@ def get_report(ticket_id: int) -> Report | None:
             return cur.fetchone()
 
 
+def get_reports(filter_order_params):
+    base_query = """
+        SELECT TicketId, Title, Description, C.categoryname, S.statusname,
+        Latitude::float8 AS Latitude, Longitude::float8 AS Longitude,
+        ImagePath, CreatedAt, UpdatedAt, ResolvedAt
+        FROM CityReports CR
+        JOIN Categories C ON CR.CategoryId = C.CategoryId
+        JOIN Statuses S ON CR.StatusId = S.StatusId
+    """
+
+    order = filter_order_params.pop("order", "")
+    order = "ASC" if order == "asc" else "DESC"
+    order_by = filter_order_params.pop("order_by", None)
+    ordering_mapping = {
+        "title": "CR.Title",
+        "status": "S.statusname",
+        "category": "C.categoryname",
+        "createdAt": "CR.createdAt",
+        "updatedAt": "CR.updatedAt",
+        "resolvedAt": "CR.resolvedAt",
+    }
+    order_by = ordering_mapping[order_by] if order_by else ordering_mapping["createdAt"]
+    ordering_query = f" ORDER BY {order_by} {order}"
+
+    filter_queries = set()
+    filtering_mapping = {
+        "category": "C.categoryname = '{value}'",
+        "status": "S.statusname = '{value}'",
+        "title": "CR.title ILIKE '%{value}%'",
+        "description": "CR.description ILIKE '%{value}%'",
+        "createdBefore": "CR.createdAt < '{value}'",
+        "createdAfter": "CR.createdAt > '{value}'",
+        "updatedBefore": "CR.updatedAt < '{value}'",
+        "updatedAfter": "CR.updatedAt > '{value}'",
+        "resolvedBefore": "CR.resolvedAt < '{value}'",
+        "resolvedAfter": "CR.resolvedAt > '{value}'",
+    }
+    for query_filter, value in filter_order_params.items():
+        filter_queries.add(filtering_mapping[query_filter].format(value=value))
+    filtering_query = " WHERE " + " AND ".join(filter_queries)
+
+    query = base_query + filtering_query + ordering_query
+
+    print(query)
+    with connect() as conn:
+        with conn.cursor(row_factory=dict_row) as cur:
+            cur.execute(query)
+            return cur.fetchall()
+
+
 def create_report(
     title, description, category_id, status_id, latitude, longitude
 ) -> dict[str, int] | None:

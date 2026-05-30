@@ -6,6 +6,7 @@ from user_api.serializers import (
     serialize_report_response,
     serialize_create_report_request_data,
     serialize_update_report_request_data,
+    serialize_get_reports_query_params,
 )
 
 app = Flask(__name__)
@@ -76,147 +77,10 @@ def update_report(ticket_id):
 @app.route("/api/v1/reports", methods=["GET"])
 def get_reports():
     query_params = request.args
+    try:
+        validated_params = serialize_get_reports_query_params(query_params)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
 
-    order = query_params.get("order", "").lower()
-    if order not in ["asc", "desc"]:
-        raise ValueError(f"Order field should be asc or desc")
-    order = "ASC" if order == "asc" else "DESC"
-    order_by = query_params.get("order_by", "").lower()
-    ordering_fields = (
-        "createdat",
-        "updatedat",
-        "resolvedat",
-        "title",
-        "category",
-        "status",
-    )
-    if not order_by:
-        order_by = "createdat"
-    elif order_by not in ordering_fields:
-        raise ValueError(f"Order by field should be one of {ordering_fields}")
-
-    ordering_mapping = {
-        "title": "CR.Title",
-        "createdat": "CR.createdAt",
-        "updatedat": "CR.updatedAt",
-        "resolvedat": "CR.resolvedAt",
-        "status": "S.statusname",
-        "category": "C.categoryname",
-    }
-    order_by = ordering_mapping[order_by]
-
-    sql_query = """
-        SELECT TicketId, Title, Description, C.categoryname, S.statusname,
-               Latitude::float8 AS Latitude, Longitude::float8 AS Longitude,
-               ImagePath, CreatedAt, UpdatedAt, ResolvedAt
-        FROM CityReports CR
-        JOIN Categories C ON CR.CategoryId = C.CategoryId
-        JOIN Statuses S ON CR.StatusId = S.StatusId
-    """
-
-    filter_queries = set()
-
-    category = query_params.get("category")
-    if category:
-        valid_categories = {
-            category["categoryname"]: category["categoryid"]
-            for category in repository.get_categories()
-        }
-        if category not in valid_categories:
-            raise ValueError(f"Category field should be one of {valid_categories}")
-        filter_queries.add(f"C.categoryname = '{category}'")
-
-    status = query_params.get("status")
-    if status:
-        valid_statuses = {
-            status["statusname"]: status["statusid"]
-            for status in repository.get_statuses()
-        }
-        if status not in valid_statuses:
-            raise ValueError(f"Status field should be one of {valid_statuses}")
-        filter_queries.add(f"S.statusname = '{status}'")
-
-    title = query_params.get("title")
-    if title:
-        if not isinstance(title, str):
-            raise ValueError(f"Title field should be a string")
-        filter_queries.add(f"CR.title ILIKE '%{title}%'")
-
-    description = query_params.get("description")
-    if description:
-        if not isinstance(description, str):
-            raise ValueError(f"Description field should be a string")
-        filter_queries.add(f"CR.description ILIKE '%{description}%'")
-
-    created_before = query_params.get("createdBefore")
-    if created_before:
-        try:
-            dt = datetime.fromisoformat(created_before.replace("Z", "+00:00"))
-        except ValueError:
-            raise ValueError("Datetime query parameter must be a valid ISO datetime")
-        if dt.tzinfo is None:
-            raise ValueError("Datetime query parameter must include timezone info")
-        filter_queries.add(f"CR.createdat < '{created_before}'")
-
-    created_after = query_params.get("createdAfter")
-    if created_after:
-        try:
-            dt = datetime.fromisoformat(created_after.replace("Z", "+00:00"))
-        except ValueError:
-            raise ValueError("Datetime query parameter must be a valid ISO datetime")
-        if dt.tzinfo is None:
-            raise ValueError("Datetime query parameter must include timezone info")
-        filter_queries.add(f"CR.createdat > '{created_after}'")
-
-    updated_before = query_params.get("updatedBefore")
-    if updated_before:
-        try:
-            dt = datetime.fromisoformat(updated_before.replace("Z", "+00:00"))
-        except ValueError:
-            raise ValueError("Datetime query parameter must be a valid ISO datetime")
-        if dt.tzinfo is None:
-            raise ValueError("Datetime query parameter must include timezone info")
-        filter_queries.add(f"CR.updatedat < '{updated_before}'")
-
-    updated_after = query_params.get("updatedAfter")
-    if updated_after:
-        try:
-            dt = datetime.fromisoformat(updated_after.replace("Z", "+00:00"))
-        except ValueError:
-            raise ValueError("Datetime query parameter must be a valid ISO datetime")
-        if dt.tzinfo is None:
-            raise ValueError("Datetime query parameter must include timezone info")
-        filter_queries.add(f"CR.updatedat > '{updated_after}'")
-
-    resolved_before = query_params.get("resolvedBefore")
-    if resolved_before:
-        try:
-            dt = datetime.fromisoformat(resolved_before.replace("Z", "+00:00"))
-        except ValueError:
-            raise ValueError("Datetime query parameter must be a valid ISO datetime")
-        if dt.tzinfo is None:
-            raise ValueError("Datetime query parameter must include timezone info")
-        filter_queries.add(f"CR.resolvedat < '{resolved_before}'")
-
-    resolved_after = query_params.get("resolvedAfter")
-    if resolved_after:
-        try:
-            dt = datetime.fromisoformat(resolved_after.replace("Z", "+00:00"))
-        except ValueError:
-            raise ValueError("Datetime query parameter must be a valid ISO datetime")
-        if dt.tzinfo is None:
-            raise ValueError("Datetime query parameter must include timezone info")
-        filter_queries.add(f"CR.resolvedat > '{resolved_after}'")
-
-    if filter_queries:
-        sql_query += " WHERE " + " AND ".join(filter_queries)
-    sql_query += f" ORDER BY {order_by} {order}"
-
-    print(sql_query)
-
-    with repository.connect() as conn:
-        with conn.cursor(row_factory=dict_row) as cur:
-            cur.execute(sql_query)
-            reports = cur.fetchall()
-
+    reports = repository.get_reports(validated_params)
     return jsonify([serialize_report_response(report) for report in reports])
