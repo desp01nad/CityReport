@@ -1,4 +1,7 @@
-from flask import Flask, jsonify, request
+import json
+import os
+
+from flask import Flask, jsonify, request, send_from_directory
 
 from db_repository import repository
 from user_api.serializers import (
@@ -9,6 +12,10 @@ from user_api.serializers import (
     serialize_update_report_request_data,
     serialize_get_reports_query_params,
 )
+
+REPORT_IMAGES_DIR = os.getenv("REPORT_IMAGES_DIR", "/mnt/report-images")
+UPLOAD_IMAGE_SIZE_LIMIT = 8 * 1024 * 1024
+ALLOWED_IMAGE_EXTENSIONS = [".jpg", ".png", ".jpeg"]
 
 app = Flask(__name__)
 app.json.sort_keys = False
@@ -33,7 +40,8 @@ def get_statuses():
 
 @app.route("/api/v1/reports", methods=["POST"])
 def create_report():
-    data = request.get_json(silent=True)
+    data = json.loads(request.form["data"])
+    image = request.files["image"]
     try:
         validated_data = serialize_create_report_request_data(data)
     except ValueError as exc:
@@ -87,3 +95,16 @@ def get_reports():
 
     reports = repository.get_reports(validated_params)
     return jsonify([serialize_report_response(report) for report in reports])
+
+
+@app.route("/api/v1/report-images/<int:ticket_id>", methods=["GET"])
+def get_report_images(ticket_id):
+    report = repository.get_report(ticket_id)
+    if report is None:
+        return jsonify({"error": "Report not found"}), 404
+
+    image_path = report.get("image_path")
+    if image_path is None:
+        return jsonify({"error": "Report has no image"}), 404
+
+    return send_from_directory(REPORT_IMAGES_DIR, image_path)
