@@ -1,7 +1,9 @@
+import os
+import uuid
 from datetime import UTC, datetime
 
 from db_repository import repository
-from user_api.settings import HOSTNAME
+from user_api.settings import HOSTNAME, ALLOWED_IMAGE_EXTENSIONS, REPORT_IMAGES_DIR
 
 
 def serialize_create_report_request_data(data):
@@ -233,3 +235,16 @@ def serialize_get_reports_query_params(data):
         validated_data["resolved_after"] = resolved_after
 
     return validated_data
+
+
+def validate_and_save_uploaded_image(file):
+    if not file:
+        return None
+
+    route, ext = os.path.splitext(file.filename)
+    if ext not in ALLOWED_IMAGE_EXTENSIONS:
+        raise ValueError(f"Image extension should be one of {ALLOWED_IMAGE_EXTENSIONS}")
+
+    img_upload_filename = f"report-images-{uuid.uuid4()}.{ext}"
+    file.save(os.path.join(REPORT_IMAGES_DIR, img_upload_filename))
+    return img_upload_filename

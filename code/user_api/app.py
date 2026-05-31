@@ -10,6 +10,7 @@ from user_api.serializers import (
     serialize_create_report_request_data,
     serialize_update_report_request_data,
     serialize_get_reports_query_params,
+    validate_and_save_uploaded_image,
 )
 from user_api.settings import REPORT_IMAGES_DIR
 
@@ -36,10 +37,22 @@ def get_statuses():
 
 @app.route("/api/v1/reports", methods=["POST"])
 def create_report():
-    data = json.loads(request.form["data"])
-    image = request.files["image"]
+    try:
+        data = json.loads(request.form["data"])
+    except KeyError:
+        return (
+            jsonify(
+                {
+                    "error": "Report fields should be sent as JSON under the 'data' form key"
+                }
+            ),
+            400,
+        )
+    image = request.files.get("image")
+
     try:
         validated_data = serialize_create_report_request_data(data)
+        image_path = validate_and_save_uploaded_image(image)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
 
@@ -50,7 +63,9 @@ def create_report():
         validated_data["status_id"],
         validated_data["latitude"],
         validated_data["longitude"],
+        image_path,
     )
+
     if report is None:
         return jsonify({"error": "Report not created"}), 500
 

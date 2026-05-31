@@ -119,16 +119,16 @@ def get_reports(filter_order_params):
 
 
 def create_report(
-    title, description, category_id, status_id, latitude, longitude
+    title, description, category_id, status_id, latitude, longitude, image_path
 ) -> dict[str, int] | None:
     with connect() as conn:
         with conn.cursor(row_factory=dict_row) as cur:
             cur.execute(
                 """
                 INSERT INTO city_reports (
-                    title, description, category_id, status_id, latitude, longitude
+                    title, description, category_id, status_id, latitude, longitude, image_path
                 )
-                VALUES (%s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
                 RETURNING ticket_id;
                 """,
                 (
@@ -138,6 +138,7 @@ def create_report(
                     status_id,
                     latitude,
                     longitude,
+                    image_path,
                 ),
             )
             return cur.fetchone()
