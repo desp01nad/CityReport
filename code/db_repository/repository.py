@@ -144,21 +144,18 @@ def create_report(
             return cur.fetchone()
 
 
-def update_report(ticket_id: int, updates: dict[str, object]) -> Report | None:
+def update_report(
+    ticket_id: int, updates: dict[str, object], image_path
+) -> Report | None:
     if not updates:
         raise ValueError("At least one field is required")
 
-    column_map = {
-        "title": "title",
-        "description": "description",
-        "category_id": "category_id",
-        "latitude": "latitude",
-        "longitude": "longitude",
-    }
-
-    set_clauses = [f"{column_map[field]} = %s" for field in updates]
-    set_clauses.append("updated_at = CURRENT_TIMESTAMP")
+    set_clauses = [f"{field} = %s" for field in updates]
     values = [updates[field] for field in updates]
+    if image_path:
+        set_clauses.append(f"image_path = %s")
+        values.append(image_path)
+    set_clauses.append("updated_at = CURRENT_TIMESTAMP")
     values.append(ticket_id)
 
     with connect() as conn:

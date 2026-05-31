@@ -83,13 +83,26 @@ def get_report(ticket_id):
 
 @app.route("/api/v1/report/<int:ticket_id>", methods=["PATCH"])
 def update_report(ticket_id):
-    data = request.get_json(silent=True)
+    try:
+        data = json.loads(request.form["data"])
+    except KeyError:
+        return (
+            jsonify(
+                {
+                    "error": "Report fields should be sent as JSON under the 'data' form key"
+                }
+            ),
+            400,
+        )
+    image = request.files.get("image")
+
     try:
         validated_data = serialize_update_report_request_data(data)
+        image_path = validate_and_save_uploaded_image(image)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
 
-    report = repository.update_report(ticket_id, validated_data)
+    report = repository.update_report(ticket_id, validated_data, image_path)
     if report is None:
         return jsonify({"error": "Report not found"}), 404
 
