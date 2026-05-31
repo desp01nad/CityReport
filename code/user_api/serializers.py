@@ -1,6 +1,7 @@
 from datetime import UTC, datetime
 
 from db_repository import repository
+from user_api.settings import HOSTNAME
 
 
 def serialize_create_report_request_data(data):
@@ -114,7 +115,11 @@ def serialize_report_response(report):
         "statusName": report["status_name"],
         "latitude": report["latitude"],
         "longitude": report["longitude"],
-        "imagePath": report["image_path"],
+        "imageUrl": (
+            f"{HOSTNAME}/api/v1/report-images/{report["ticket_id"]}"
+            if report["image_path"]
+            else None
+        ),
         "createdAt": serialize_datetime(report["created_at"]),
         "updatedAt": serialize_datetime(report["updated_at"]),
         "resolvedAt": serialize_datetime(report["resolved_at"]),

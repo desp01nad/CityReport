@@ -1,5 +1,4 @@
 import json
-import os
 
 from flask import Flask, jsonify, request, send_from_directory
 
@@ -12,10 +11,7 @@ from user_api.serializers import (
     serialize_update_report_request_data,
     serialize_get_reports_query_params,
 )
-
-REPORT_IMAGES_DIR = os.getenv("REPORT_IMAGES_DIR", "/mnt/report-images")
-UPLOAD_IMAGE_SIZE_LIMIT = 8 * 1024 * 1024
-ALLOWED_IMAGE_EXTENSIONS = [".jpg", ".png", ".jpeg"]
+from user_api.settings import REPORT_IMAGES_DIR
 
 app = Flask(__name__)
 app.json.sort_keys = False
