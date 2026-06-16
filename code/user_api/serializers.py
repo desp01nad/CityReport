@@ -245,6 +245,6 @@ def validate_and_save_uploaded_image(file):
     if ext not in ALLOWED_IMAGE_EXTENSIONS:
         raise ValueError(f"Image extension should be one of {ALLOWED_IMAGE_EXTENSIONS}")
 
-    img_upload_filename = f"report-images-{uuid.uuid4()}.{ext}"
+    img_upload_filename = f"report-images-{uuid.uuid4()}{ext}"
     file.save(os.path.join(REPORT_IMAGES_DIR, img_upload_filename))
     return img_upload_filename
