@@ -93,28 +93,31 @@ def get_reports(filter_order_params):
     )
     ordering_query = f" ORDER BY {order_by} {order}"
 
-    filter_queries = set()
     filtering_mapping = {
-        "category": "c.category_name = '{value}'",
-        "status": "s.status_name = '{value}'",
-        "title": "cr.title ILIKE '%{value}%'",
-        "description": "cr.description ILIKE '%{value}%'",
-        "created_before": "cr.created_at < '{value}'",
-        "created_after": "cr.created_at > '{value}'",
-        "updated_before": "cr.updated_at < '{value}'",
-        "updated_after": "cr.updated_at > '{value}'",
-        "resolved_before": "cr.resolved_at < '{value}'",
-        "resolved_after": "cr.resolved_at > '{value}'",
+        "category": "c.category_name = %s",
+        "status": "s.status_name = %s",
+        "title": "cr.title ILIKE %s",
+        "description": "cr.description ILIKE %s",
+        "created_before": "cr.created_at < %s",
+        "created_after": "cr.created_at > %s",
+        "updated_before": "cr.updated_at < %s",
+        "updated_after": "cr.updated_at > %s",
+        "resolved_before": "cr.resolved_at < %s",
+        "resolved_after": "cr.resolved_at > %s",
     }
+    ilike_filters = {"title", "description"}
+    filter_clauses = []
+    params = []
     for query_filter, value in filter_order_params.items():
-        filter_queries.add(filtering_mapping[query_filter].format(value=value))
-    filtering_query = " WHERE " + " AND ".join(filter_queries) if filter_queries else ""
+        filter_clauses.append(filtering_mapping[query_filter])
+        params.append(f"%{value}%" if query_filter in ilike_filters else value)
+    filtering_query = " WHERE " + " AND ".join(filter_clauses) if filter_clauses else ""
 
     query = base_query + filtering_query + ordering_query
 
     with connect() as conn:
         with conn.cursor(row_factory=dict_row) as cur:
-            cur.execute(query)
+            cur.execute(query, params)
             return cur.fetchall()
 
 
@@ -144,11 +147,18 @@ def create_report(
             return cur.fetchone()
 
 
+UPDATABLE_FIELDS = {"title", "description", "category_id", "latitude", "longitude"}
+
+
 def update_report(
     ticket_id: int, updates: dict[str, object], image_path
 ) -> Report | None:
     if not updates:
         raise ValueError("At least one field is required")
+
+    invalid = updates.keys() - UPDATABLE_FIELDS
+    if invalid:
+        raise ValueError(f"Invalid fields: {invalid}")
 
     set_clauses = [f"{field} = %s" for field in updates]
     values = [updates[field] for field in updates]
