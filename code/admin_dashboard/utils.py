@@ -36,6 +36,16 @@ def fetch_reports(
     quality=None,
     priority=None,
 ):
+    """Fetch reports, passing only the supplied filters to the repository.
+
+    Args:
+        order_by, order: Sort field and direction.
+        category, status, quality, priority, title, description, and the
+        created/updated/resolved before/after bounds: Optional filters.
+
+    Returns:
+        List of matching report rows.
+    """
     params = {"order_by": order_by, "order": order}
     if category:
         params["category"] = category
@@ -66,6 +76,14 @@ def fetch_reports(
 
 @st.cache_data(ttl=300)
 def load_thumbnail(image_path):
+    """Read a report image and encode it as a base64 data URI for inline display.
+
+    Args:
+        image_path: Image filename relative to the images directory.
+
+    Returns:
+        A ``data:image/...`` URI string, or None if the file is missing.
+    """
     full_path = os.path.join(REPORT_IMAGES_DIR, image_path)
     if not os.path.exists(full_path):
         return None

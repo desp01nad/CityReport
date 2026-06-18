@@ -31,6 +31,14 @@ WMO_DESCRIPTIONS = {
 
 @st.cache_data(ttl=600)
 def fetch_weather(lat, lon):
+    """Fetch current weather for a coordinate from the Open-Meteo API.
+
+    Args:
+        lat, lon: Location coordinates.
+
+    Returns:
+        The parsed weather JSON, or None if the request fails.
+    """
     try:
         resp = requests.get(
             "https://api.open-meteo.com/v1/forecast",

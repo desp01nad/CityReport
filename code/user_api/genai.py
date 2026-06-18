@@ -22,6 +22,15 @@ SYSTEM_PROMPT = (
 
 
 def assess_report(title, description, category_name) -> dict:
+    """Ask the LLM to rate a report's quality and priority.
+
+    Args:
+        title, description, category_name: Report content sent to the model.
+
+    Returns:
+        Dict with ``quality`` and ``priority`` labels, falling back to the
+        defaults if the call fails or returns an unexpected value.
+    """
     try:
         client = Client(
             host=OLLAMA_HOST,

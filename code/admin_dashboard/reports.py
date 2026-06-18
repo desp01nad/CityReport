@@ -40,6 +40,12 @@ PRIORITY_OPTIONS = ["low", "medium", "high", "urgent"]
 
 
 def _render_detail_panel(report: pd.Series):
+    """Render the detail panel for one report, including its status/comment editor.
+
+    Args:
+        report: The selected report row; on save, its status and admin comments
+            are persisted to the database.
+    """
     st.subheader(f"#{report['ticket_id']} - {report['title']}")
     info_col, weather_col = st.columns(2)
 

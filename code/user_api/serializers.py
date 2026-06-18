@@ -7,6 +7,18 @@ from user_api.settings import HOSTNAME, ALLOWED_IMAGE_EXTENSIONS, REPORT_IMAGES_
 
 
 def serialize_create_report_request_data(data):
+    """Validate an incoming report payload and resolve it to DB column values.
+
+    Args:
+        data: Parsed JSON body of a create-report request.
+
+    Returns:
+        Dict of validated fields including resolved ``category_id`` and default
+        ``status_id``.
+
+    Raises:
+        ValueError: If a required field is missing or any field is invalid.
+    """
     # validate mandatory fields
     title = data.get("title")
     if not isinstance(title, str) or len(title) < 1:
@@ -47,6 +59,17 @@ def serialize_create_report_request_data(data):
 
 
 def serialize_update_report_request_data(data):
+    """Validate a partial report-update payload, keeping only supplied fields.
+
+    Args:
+        data: Parsed JSON body of an update-report request.
+
+    Returns:
+        Dict of validated fields to update (e.g. with resolved ``category_id``).
+
+    Raises:
+        ValueError: If the body is not an object, is empty, or a field is invalid.
+    """
     if not isinstance(data, dict):
         raise ValueError("Request body must be a JSON object")
 
@@ -129,6 +152,17 @@ def serialize_report_response(report):
 
 
 def serialize_datetime(value):
+    """Render a datetime as a UTC ISO-8601 string using a trailing 'Z'.
+
+    Args:
+        value: A datetime (naive values are assumed UTC), or None.
+
+    Returns:
+        The ISO-8601 string, or None if ``value`` is None.
+
+    Raises:
+        ValueError: If ``value`` is neither a datetime nor None.
+    """
     if value is None:
         return None
     if not isinstance(value, datetime):
@@ -143,6 +177,17 @@ def serialize_datetime(value):
 
 
 def validate_and_parse_iso_format_datetime_string(value):
+    """Parse a timezone-aware ISO-8601 string into a datetime.
+
+    Args:
+        value: An ISO-8601 datetime string (a trailing 'Z' is accepted).
+
+    Returns:
+        The parsed datetime.
+
+    Raises:
+        ValueError: If the string is not valid ISO-8601 or lacks timezone info.
+    """
     try:
         dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
     except ValueError:
@@ -153,6 +198,17 @@ def validate_and_parse_iso_format_datetime_string(value):
 
 
 def serialize_get_reports_query_params(data):
+    """Validate report list query params and map them to repository filter keys.
+
+    Args:
+        data: Request query parameters (e.g. ``orderBy``, ``category``, date bounds).
+
+    Returns:
+        Dict of validated filters/ordering using repository-side key names.
+
+    Raises:
+        ValueError: If any parameter has an unsupported value.
+    """
     validated_data = {}
     order = data.get("order", "")
     if order:
@@ -238,6 +294,17 @@ def serialize_get_reports_query_params(data):
 
 
 def validate_and_save_uploaded_image(file):
+    """Validate an uploaded image's extension and save it under a unique name.
+
+    Args:
+        file: An uploaded file object, or None if no image was sent.
+
+    Returns:
+        The generated filename stored on disk, or None if no file was given.
+
+    Raises:
+        ValueError: If the file extension is not allowed.
+    """
     if not file:
         return None
 

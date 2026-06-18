@@ -68,6 +68,15 @@ def get_report(ticket_id: int) -> Report | None:
 
 
 def get_reports(filter_order_params):
+    """Build and run a dynamic query that filters and orders city reports.
+
+    Args:
+        filter_order_params: Dict of filters plus optional ``order`` ("asc"/"desc")
+            and ``order_by`` keys, which are consumed while building the query.
+
+    Returns:
+        List of matching report rows as dicts.
+    """
     base_query = """
         SELECT cr.ticket_id, cr.title, cr.description,
                c.category_name, s.status_name,
@@ -137,6 +146,15 @@ def create_report(
     quality,
     priority,
 ) -> dict[str, int] | None:
+    """Insert a new report with status 'Reported'.
+
+    Args:
+        title, description, category_id, status_id, latitude, longitude, image_path,
+        quality, priority
+
+    Returns:
+        Dict with the generated ``ticket_id``, or None if the insert returned nothing.
+    """
     with connect() as conn:
         with conn.cursor(row_factory=dict_row) as cur:
             cur.execute(
@@ -177,6 +195,20 @@ UPDATABLE_FIELDS = {
 def admin_update_report(
     ticket_id: int, status_id: int, admin_comments: str | None, is_resolved: bool
 ) -> Report | None:
+    """Update a report's status and admin comments from the dashboard.
+
+    ``resolved_at`` is stamped when the report becomes resolved, kept if the status
+    is unchanged, and cleared otherwise.
+
+    Args:
+        ticket_id: Report to update.
+        status_id: New status.
+        admin_comments: Admin notes, or None.
+        is_resolved: Whether the new status is the resolved state.
+
+    Returns:
+        The updated report row, or None if the ticket does not exist.
+    """
     with connect() as conn:
         with conn.cursor(row_factory=dict_row) as cur:
             cur.execute(
@@ -213,6 +245,19 @@ def admin_update_report(
 def update_report(
     ticket_id: int, updates: dict[str, object], image_path
 ) -> Report | None:
+    """Apply a partial citizen update to a report's editable fields.
+
+    Args:
+        ticket_id: Report to update.
+        updates: Field/value pairs; keys must be within ``UPDATABLE_FIELDS``.
+        image_path: New image filename to set, or falsy to leave the image unchanged.
+
+    Returns:
+        The updated report row, or None if the ticket does not exist.
+
+    Raises:
+        ValueError: If ``updates`` is empty or contains unsupported fields.
+    """
     if not updates:
         raise ValueError("At least one field is required")
 

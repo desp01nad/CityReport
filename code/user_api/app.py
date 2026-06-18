@@ -38,6 +38,11 @@ def get_statuses():
 
 @app.route("/api/v1/reports", methods=["POST"])
 def create_report():
+    """Create a report from a multipart request and return its ticket ID.
+
+    Expects report fields as JSON under the ``data`` form key and an optional
+    ``image`` file. Returns the new ``ticketId`` (201), or an error payload.
+    """
     try:
         data = json.loads(request.form["data"])
     except KeyError:
@@ -92,6 +97,11 @@ def get_report(ticket_id):
 
 @app.route("/api/v1/report/<int:ticket_id>", methods=["PATCH"])
 def update_report(ticket_id):
+    """Apply a citizen update to an existing report and return the updated report.
+
+    Expects changed fields as JSON under the ``data`` form key and an optional new
+    ``image`` file. Re-runs the AI assessment and returns the report, or an error.
+    """
     try:
         data = json.loads(request.form["data"])
     except KeyError:

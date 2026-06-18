@@ -51,6 +51,18 @@ _LEAFLET_TEMPLATE = Template("""\
 
 
 def build_js_map_html(reports, selected_id, start, target, height=MAP_SIZE):
+    """Render a self-contained Leaflet map HTML document with report markers.
+
+    Args:
+        reports: Report rows to plot (uses ticket_id, title, latitude, longitude).
+        selected_id: Ticket ID to highlight, or None.
+        start: Initial ``{center, zoom}`` view.
+        target: ``{center, zoom}`` view to fly to after load.
+        height: Map height in pixels.
+
+    Returns:
+        An HTML string embedding the map.
+    """
     markers = [
         {key: r[key] for key in ("ticket_id", "title", "latitude", "longitude")}
         for r in reports
