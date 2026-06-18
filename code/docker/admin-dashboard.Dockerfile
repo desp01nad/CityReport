@@ -5,6 +5,8 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
+ENV PYTHONPATH=/app
+
 COPY admin_dashboard ./admin_dashboard
 COPY db_repository ./db_repository
 RUN pip install --no-cache-dir -r admin_dashboard/requirements.txt

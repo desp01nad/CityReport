@@ -71,7 +71,8 @@ def get_reports(filter_order_params):
                c.category_name, s.status_name,
                cr.latitude::float8 AS latitude,
                cr.longitude::float8 AS longitude,
-               cr.image_path, cr.created_at, cr.updated_at, cr.resolved_at
+               cr.image_path, cr.created_at, cr.updated_at, cr.resolved_at,
+               cr.admin_comments
         FROM city_reports cr
         JOIN categories c ON cr.category_id = c.category_id
         JOIN statuses s ON cr.status_id = s.status_id
@@ -148,6 +149,42 @@ def create_report(
 
 
 UPDATABLE_FIELDS = {"title", "description", "category_id", "latitude", "longitude"}
+
+
+def admin_update_report(
+    ticket_id: int, status_id: int, admin_comments: str | None, is_resolved: bool
+) -> Report | None:
+    with connect() as conn:
+        with conn.cursor(row_factory=dict_row) as cur:
+            cur.execute(
+                """
+                WITH updated AS (
+                    UPDATE city_reports
+                    SET status_id = %s,
+                        admin_comments = %s,
+                        updated_at = CURRENT_TIMESTAMP,
+                        resolved_at = CASE
+                            WHEN %s = status_id THEN resolved_at
+                            WHEN %s THEN CURRENT_TIMESTAMP
+                            ELSE NULL
+                        END
+                    WHERE ticket_id = %s
+                    RETURNING *
+                )
+                SELECT updated.ticket_id, updated.title, updated.description,
+                       c.category_name, s.status_name,
+                       updated.latitude::float8 AS latitude,
+                       updated.longitude::float8 AS longitude,
+                       updated.image_path,
+                       updated.created_at, updated.updated_at, updated.resolved_at,
+                       updated.admin_comments
+                FROM updated
+                JOIN categories c ON updated.category_id = c.category_id
+                JOIN statuses s ON updated.status_id = s.status_id
+                """,
+                (status_id, admin_comments, status_id, is_resolved, ticket_id),
+            )
+            return cur.fetchone()
 
 
 def update_report(
