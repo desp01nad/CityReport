@@ -31,7 +31,12 @@ REPORT_COLUMNS = [
     "updated_at",
     "resolved_at",
     "admin_comments",
+    "quality",
+    "priority",
 ]
+
+QUALITY_OPTIONS = ["low", "normal", "high"]
+PRIORITY_OPTIONS = ["low", "medium", "high", "urgent"]
 
 
 def _render_detail_panel(report: pd.Series):
@@ -40,6 +45,8 @@ def _render_detail_panel(report: pd.Series):
 
     with info_col:
         st.markdown(f"**Category:** {report['category_name']}")
+        st.markdown(f"**Quality:** {report['quality']}")
+        st.markdown(f"**Priority:** {report['priority']}")
         st.markdown(
             f"**Coordinates:** {report['latitude']:.4f}, {report['longitude']:.4f}"
         )
@@ -120,6 +127,8 @@ bottom_row = st.container()
 _FILTER_KEYS = (
     "filter_category",
     "filter_status",
+    "filter_quality",
+    "filter_priority",
     "filter_title",
     "filter_description",
     "filter_created_after",
@@ -143,6 +152,8 @@ reports = fetch_reports(
     order="desc",
     category=st.session_state.get("filter_category") or None,
     status=st.session_state.get("filter_status") or None,
+    quality=st.session_state.get("filter_quality") or None,
+    priority=st.session_state.get("filter_priority") or None,
     title=st.session_state.get("filter_title") or None,
     description=st.session_state.get("filter_description") or None,
     created_after=st.session_state.get("filter_created_after"),
@@ -190,7 +201,7 @@ with top_row:
         st.session_state.map_view = target
 
     with right_col:
-        f_col1, f_col2, f_col3, f_col4 = st.columns(4)
+        f_col1, f_col2, f_col3, f_col4, f_col5, f_col6 = st.columns(6)
         with f_col1:
             st.selectbox(
                 "Category",
@@ -204,8 +215,20 @@ with top_row:
                 key="filter_status",
             )
         with f_col3:
-            st.text_input("Title", key="filter_title")
+            st.selectbox(
+                "Quality",
+                options=[""] + QUALITY_OPTIONS,
+                key="filter_quality",
+            )
         with f_col4:
+            st.selectbox(
+                "Priority",
+                options=[""] + PRIORITY_OPTIONS,
+                key="filter_priority",
+            )
+        with f_col5:
+            st.text_input("Title", key="filter_title")
+        with f_col6:
             st.text_input("Description", key="filter_description")
 
         d_col1, d_col2, d_col3, d_col4, d_col5, d_col6 = st.columns(6)
@@ -244,6 +267,8 @@ with bottom_row:
                         "description",
                         "category_name",
                         "status_name",
+                        "quality",
+                        "priority",
                         "latitude",
                         "longitude",
                         "created_at",
@@ -261,6 +286,8 @@ with bottom_row:
                     ),
                     "category_name": st.column_config.TextColumn("Category"),
                     "status_name": st.column_config.TextColumn("Status"),
+                    "quality": st.column_config.TextColumn("Quality"),
+                    "priority": st.column_config.TextColumn("Priority"),
                     "latitude": st.column_config.NumberColumn("Lat", format="%.4f"),
                     "longitude": st.column_config.NumberColumn("Lon", format="%.4f"),
                     "created_at": st.column_config.DatetimeColumn(

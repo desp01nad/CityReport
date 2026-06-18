@@ -3,6 +3,7 @@ import json
 from flask import Flask, jsonify, request, send_from_directory
 
 from db_repository import repository
+from user_api.genai import assess_report
 from user_api.serializers import (
     serialize_report_response,
     serialize_category_response,
@@ -56,6 +57,12 @@ def create_report():
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
 
+    assessment = assess_report(
+        validated_data["title"],
+        validated_data["description"],
+        data.get("category") or "Generic",
+    )
+
     report = repository.create_report(
         validated_data["title"],
         validated_data["description"],
@@ -64,6 +71,8 @@ def create_report():
         validated_data["latitude"],
         validated_data["longitude"],
         image_path,
+        assessment["quality"],
+        assessment["priority"],
     )
 
     if report is None:
@@ -101,6 +110,18 @@ def update_report(ticket_id):
         image_path = validate_and_save_uploaded_image(image)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
+
+    existing = repository.get_report(ticket_id)
+    if existing is None:
+        return jsonify({"error": "Report not found"}), 404
+
+    assessment = assess_report(
+        validated_data.get("title", existing["title"]),
+        validated_data.get("description", existing["description"]),
+        data.get("category") or existing["category_name"],
+    )
+    validated_data["quality"] = assessment["quality"]
+    validated_data["priority"] = assessment["priority"]
 
     report = repository.update_report(ticket_id, validated_data, image_path)
     if report is None:

@@ -33,12 +33,18 @@ def fetch_reports(
     updated_before=None,
     resolved_after=None,
     resolved_before=None,
+    quality=None,
+    priority=None,
 ):
     params = {"order_by": order_by, "order": order}
     if category:
         params["category"] = category
     if status:
         params["status"] = status
+    if quality:
+        params["quality"] = quality
+    if priority:
+        params["priority"] = priority
     if title:
         params["title"] = title
     if description:

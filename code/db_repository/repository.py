@@ -18,6 +18,8 @@ class Report(TypedDict):
     updated_at: datetime | None
     resolved_at: datetime | None
     admin_comments: str | None
+    quality: str
+    priority: str
 
 
 def connect():
@@ -54,7 +56,7 @@ def get_report(ticket_id: int) -> Report | None:
                        cr.latitude::float8 AS latitude,
                        cr.longitude::float8 AS longitude,
                        cr.image_path, cr.created_at, cr.updated_at,
-                       cr.resolved_at, cr.admin_comments
+                       cr.resolved_at, cr.admin_comments, cr.quality, cr.priority
                 FROM city_reports cr
                 JOIN categories c ON cr.category_id = c.category_id
                 JOIN statuses s ON cr.status_id = s.status_id
@@ -72,7 +74,7 @@ def get_reports(filter_order_params):
                cr.latitude::float8 AS latitude,
                cr.longitude::float8 AS longitude,
                cr.image_path, cr.created_at, cr.updated_at, cr.resolved_at,
-               cr.admin_comments
+               cr.admin_comments, cr.quality, cr.priority
         FROM city_reports cr
         JOIN categories c ON cr.category_id = c.category_id
         JOIN statuses s ON cr.status_id = s.status_id
@@ -105,6 +107,8 @@ def get_reports(filter_order_params):
         "updated_after": "cr.updated_at > %s",
         "resolved_before": "cr.resolved_at < %s",
         "resolved_after": "cr.resolved_at > %s",
+        "quality": "cr.quality = %s",
+        "priority": "cr.priority = %s",
     }
     ilike_filters = {"title", "description"}
     filter_clauses = []
@@ -123,16 +127,25 @@ def get_reports(filter_order_params):
 
 
 def create_report(
-    title, description, category_id, status_id, latitude, longitude, image_path
+    title,
+    description,
+    category_id,
+    status_id,
+    latitude,
+    longitude,
+    image_path,
+    quality,
+    priority,
 ) -> dict[str, int] | None:
     with connect() as conn:
         with conn.cursor(row_factory=dict_row) as cur:
             cur.execute(
                 """
                 INSERT INTO city_reports (
-                    title, description, category_id, status_id, latitude, longitude, image_path
+                    title, description, category_id, status_id, latitude, longitude,
+                    image_path, quality, priority
                 )
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                 RETURNING ticket_id;
                 """,
                 (
@@ -143,12 +156,22 @@ def create_report(
                     latitude,
                     longitude,
                     image_path,
+                    quality,
+                    priority,
                 ),
             )
             return cur.fetchone()
 
 
-UPDATABLE_FIELDS = {"title", "description", "category_id", "latitude", "longitude"}
+UPDATABLE_FIELDS = {
+    "title",
+    "description",
+    "category_id",
+    "latitude",
+    "longitude",
+    "quality",
+    "priority",
+}
 
 
 def admin_update_report(
@@ -177,7 +200,7 @@ def admin_update_report(
                        updated.longitude::float8 AS longitude,
                        updated.image_path,
                        updated.created_at, updated.updated_at, updated.resolved_at,
-                       updated.admin_comments
+                       updated.admin_comments, updated.quality, updated.priority
                 FROM updated
                 JOIN categories c ON updated.category_id = c.category_id
                 JOIN statuses s ON updated.status_id = s.status_id
@@ -221,7 +244,7 @@ def update_report(
                        updated.longitude::float8 AS longitude,
                        updated.image_path,
                        updated.created_at, updated.updated_at, updated.resolved_at,
-                       updated.admin_comments
+                       updated.admin_comments, updated.quality, updated.priority
                 FROM updated
                 JOIN categories c ON updated.category_id = c.category_id
                 JOIN statuses s ON updated.status_id = s.status_id
