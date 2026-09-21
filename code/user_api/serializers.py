@@ -308,7 +308,7 @@ def validate_and_save_uploaded_image(file):
     if not file:
         return None
 
-    route, ext = os.path.splitext(file.filename)
+    ext = os.path.splitext(file.filename)[1].lower()
     if ext not in ALLOWED_IMAGE_EXTENSIONS:
         raise ValueError(f"Image extension should be one of {ALLOWED_IMAGE_EXTENSIONS}")
 

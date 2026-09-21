@@ -45,7 +45,7 @@ def create_report():
     """
     try:
         data = json.loads(request.form["data"])
-    except KeyError:
+    except KeyError, json.JSONDecodeError:
         return (
             jsonify(
                 {
@@ -104,7 +104,7 @@ def update_report(ticket_id):
     """
     try:
         data = json.loads(request.form["data"])
-    except KeyError:
+    except KeyError, json.JSONDecodeError:
         return (
             jsonify(
                 {
