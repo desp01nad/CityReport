@@ -3,7 +3,7 @@ import uuid
 from datetime import UTC, datetime
 
 from db_repository import repository
-from user_api.settings import HOSTNAME, ALLOWED_IMAGE_EXTENSIONS, REPORT_IMAGES_DIR
+from user_api.settings import API_BASE_URL, ALLOWED_IMAGE_EXTENSIONS, REPORT_IMAGES_DIR
 
 
 def serialize_create_report_request_data(data):
@@ -141,7 +141,7 @@ def serialize_report_response(report):
         "latitude": report["latitude"],
         "longitude": report["longitude"],
         "imageUrl": (
-            f"{HOSTNAME}/api/v1/report-images/{report["ticket_id"]}"
+            f"{API_BASE_URL}/api/v1/report-images/{report["ticket_id"]}"
             if report["image_path"]
             else None
         ),

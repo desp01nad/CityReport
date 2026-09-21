@@ -37,6 +37,7 @@ services:
     restart: always
     env_file: .env
     environment:
+      API_BASE_URL: ${API_BASE_URL}
       # psycopg specific env variables
       PGHOST: postgres-db
       PGPORT: 5432
