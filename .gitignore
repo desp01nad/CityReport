@@ -8,3 +8,5 @@
 code/.env
 .venv/
 .pytest_cache/
+
+code/constraints.txt

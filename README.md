@@ -149,8 +149,24 @@ directory:
 ```bash
 python -m venv .venv
 source .venv/Scripts/activate
-pip install -r requirements-dev.txt
+pip install -r user_api/requirements.txt -r admin_dashboard/requirements.txt -r requirements-dev.txt
 pytest
 ```
 
 On Linux and macOS the activate step is `source .venv/bin/activate`.
+
+## Managing dependencies
+
+```bash
+pip install pip-tools
+```
+
+```bash
+pip-compile user_api/requirements.in admin_dashboard/requirements.in requirements-dev.in -o constraints.txt
+```
+
+```bash
+for txt in user_api/requirements admin_dashboard/requirements requirements-dev; do
+  pip-compile "$txt.in" -c constraints.txt -o "$txt.txt"
+done
+```
