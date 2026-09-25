@@ -1,0 +1,22 @@
+# Project-wide configuration for the City Report services.
+
+[project]
+name = "city-report"
+version = "0.1.0"
+description = "Municipal issue-reporting platform: a Flask REST API with LLM-based triage, PostgreSQL, and a Streamlit admin dashboard."
+requires-python = ">=3.12"
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = [
+    "user_api/tests",
+]
+
+pythonpath = ["."]
+
+addopts = [
+    "--import-mode=importlib",
+    "--strict-config",
+    "--strict-markers",
+    "-ra",
+]

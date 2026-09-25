@@ -6,3 +6,5 @@
 *__pycache__
 
 code/.env
+.venv/
+.pytest_cache/

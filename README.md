@@ -139,3 +139,18 @@ To stop **and wipe the database and images** (start from scratch on the next
 ```bash
 docker compose down -v
 ```
+
+## Running the tests
+
+The suite covers the API's request validation. It stubs the database lookups, so
+it needs no running services — only Python 3.12 or newer. From the `code/`
+directory:
+
+```bash
+python -m venv .venv
+source .venv/Scripts/activate
+pip install -r requirements-dev.txt
+pytest
+```
+
+On Linux and macOS the activate step is `source .venv/bin/activate`.
