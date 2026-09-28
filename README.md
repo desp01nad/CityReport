@@ -1,7 +1,11 @@
 # City Report
 
+[![CI](https://github.com/desp01nad/CityReport/actions/workflows/ci.yml/badge.svg)](https://github.com/desp01nad/CityReport/actions/workflows/ci.yml)
+
 A municipal issue-reporting platform: a REST API for citizens, an LLM triage step,
 and a Streamlit operations dashboard for city staff.
+
+![Reports dashboard](docs/images/dashboard.png)
 
 ## What it does
 
@@ -19,8 +23,8 @@ long each category takes to resolve.
 
 ## Screenshots
 
-![Reports dashboard](docs/images/dashboard.png)
-*The reports dashboard: city-wide map, filters across every report field, and the full report queue.*
+The reports dashboard (shown at the top) has a city-wide map, filters across every
+report field, and the full report queue.
 
 ![Report detail](docs/images/report-detail.png)
 *Opening a report shows its photo, the LLM-assigned quality and priority, and live weather at the reported coordinates.*
@@ -89,34 +93,35 @@ Leaflet · Open-Meteo · Ollama Cloud · Docker Compose
 | GET | `/api/v1/report-images/<ticket_id>` | Serve a report's image |
 
 
-## Prerequisites
+## Getting started
+
+### Prerequisites
 
 - Docker and Docker Compose
-- An Ollama Cloud API key (https://ollama.com) for the AI assessment subsystem
+- Optional: an [Ollama Cloud](https://ollama.com) API key for the AI assessment.
+  Without one, reports get the default assessment (`normal` quality, `medium` priority).
+- Python 3.12 or newer, only to run the tests
 
-## Configuration
+### Configure
 
 All commands are run from the `code/` directory, where `compose.yaml` lives.
 
-1. Create the environment file from the example and fill in the values:
+```bash
+cd code
+cp example.env .env
+```
 
-   ```bash
-   cd code
-   cp example.env .env
-   ```
+Then edit `.env`:
 
-2. Edit `.env`:
+```
+POSTGRES_DB=postgres
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=<choose-a-password>
+OLLAMA_API_KEY=<your-ollama-cloud-api-key>
+API_BASE_URL=http://localhost:5000
+```
 
-   ```
-   POSTGRES_DB=postgres
-   POSTGRES_USER=postgres
-   POSTGRES_PASSWORD=<choose-a-password>
-   OLLAMA_API_KEY=<your-ollama-cloud-api-key>
-   ```
-
-## Running the app
-
-From the `code/` directory:
+### Run
 
 ```bash
 docker compose up --build -d
@@ -140,33 +145,50 @@ To stop **and wipe the database and images** (start from scratch on the next
 docker compose down -v
 ```
 
-## Running the tests
+### Test
 
 The suite covers the API's request validation. It stubs the database lookups, so
-it needs no running services — only Python 3.12 or newer. From the `code/`
-directory:
+it needs no running services, network or credentials. From the `code/` directory:
 
 ```bash
 python -m venv .venv
-source .venv/Scripts/activate
+```
+
+Activate it: `.venv\Scripts\activate` on Windows, `source .venv/bin/activate` on
+macOS/Linux. Then:
+
+```bash
 pip install -r user_api/requirements.txt -r admin_dashboard/requirements.txt -r requirements-dev.txt
 pytest
 ```
 
-On Linux and macOS the activate step is `source .venv/bin/activate`.
+<details>
+<summary>Managing dependencies</summary>
 
-## Managing dependencies
+Dependencies are pinned with [pip-tools](https://github.com/jazzband/pip-tools).
+From the `code/` directory:
 
 ```bash
 pip install pip-tools
-```
-
-```bash
 pip-compile user_api/requirements.in admin_dashboard/requirements.in requirements-dev.in -o constraints.txt
-```
-
-```bash
 for txt in user_api/requirements admin_dashboard/requirements requirements-dev; do
   pip-compile "$txt.in" -c constraints.txt -o "$txt.txt"
 done
 ```
+
+</details>
+
+## Credits
+
+- Weather data from [Open-Meteo](https://open-meteo.com/).
+- Map tiles from [Stadia Maps](https://stadiamaps.com/), © OpenMapTiles, © OpenStreetMap contributors.
+- Triage model `gpt-oss:20b`, served by [Ollama Cloud](https://ollama.com).
+
+This project is not affiliated with or endorsed by any of them. Their services and data
+remain with their owners and are not covered by the MIT license.
+
+## License
+
+Released under the [MIT License](LICENSE). The demo report photos in
+`code/demo-report-images/` are original or AI-generated for this project and are
+covered by the same license.
